@@ -31,12 +31,18 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         SQLiteHelper sqLiteHelper = new SQLiteHelper(getApplicationContext());
-        try {
-            sqLiteHelper.createTeam(1, "MAS");
-            sqLiteHelper.createTeam(2, "RCA");
-            // sqLiteHelper.createMatch(1, 2, "2-1");
-        } catch (Exception ignored){}
+        List<Team> teams = sqLiteHelper.getAllTeams();
+        for(Team team: teams)
+            Log.d("MainActivity", "onCreate: " + team);
+        if(sqLiteHelper.getAllTeams().size() != 16){
+            sqLiteHelper.deleteAllTeams();
+            createTeams();
+            // test
+            createTestMatches();
+        }
+
         assessReceiveSmsPermissions();
         recyclerViewMatches = findViewById(R.id.recyclerViewMatches);
         updateRecycler();
@@ -122,6 +128,37 @@ public class MainActivity extends AppCompatActivity {
         recyclerViewMatches.setAdapter(matchesAdapter);
         recyclerViewMatches.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
         Log.d("MainActivity", "updateRecycler: updated recycler");
+    }
+
+    // TODO: change by shipped db
+    private void createTeams(){
+        SQLiteHelper sqLiteHelper = new SQLiteHelper(getApplicationContext());
+        sqLiteHelper.createTeam(1, "Raja");
+        sqLiteHelper.createTeam(2, "Wydad AC");
+        sqLiteHelper.createTeam(3, "Olympic Safi");
+        sqLiteHelper.createTeam(4, "FAR Rabat");
+        sqLiteHelper.createTeam(5, "IR Tanger");
+        sqLiteHelper.createTeam(6, "Berkane");
+        sqLiteHelper.createTeam(7, "Maghreb Fès");
+        sqLiteHelper.createTeam(8, "CAYB");
+        sqLiteHelper.createTeam(9, "HUSA");
+        sqLiteHelper.createTeam(10, "Chabab Moham.");
+        sqLiteHelper.createTeam(11, "MC Oujda");
+        sqLiteHelper.createTeam(12, "FUS Rabat");
+        sqLiteHelper.createTeam(13, "Tétouan");
+        sqLiteHelper.createTeam(14, "El Jadida");
+        sqLiteHelper.createTeam(15, "Rapide OZ");
+        sqLiteHelper.createTeam(16, "RCA Zemamra");
+    }
+
+    private void createTestMatches(){
+        SQLiteHelper sqLiteHelper = new SQLiteHelper(getApplicationContext());
+        sqLiteHelper.createMatch(1, 2, 2, 1);
+        sqLiteHelper.createMatch(1, 2, 2, 1);
+        sqLiteHelper.createMatch(5, 3, 4, 2);
+        sqLiteHelper.createMatch(10, 15, 3, 7);
+        sqLiteHelper.createMatch(5, 7, 0, 0);
+        sqLiteHelper.createMatch(1, 2, 0, 5);
     }
 
 

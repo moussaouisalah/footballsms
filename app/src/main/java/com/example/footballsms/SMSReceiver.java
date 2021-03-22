@@ -16,6 +16,7 @@ public class SMSReceiver extends BroadcastReceiver {
 
     String START_SEQUENCE = "<!##!>";
     String SEPARATING_SEQUENCE = "<##!>";
+    String RESULT_SEPARATOR = "-";
     String END_SEQUENCE = "<#!#>";
 
     String msg, phoneNumber;
@@ -56,8 +57,11 @@ public class SMSReceiver extends BroadcastReceiver {
                 int idTeam1 = Integer.parseInt(contentArray[0]);
                 String result = contentArray[1];
                 int idTeam2 = Integer.parseInt(contentArray[2]);
+                String[] resultArray = result.split(RESULT_SEPARATOR);
+                int team1Goals = Integer.parseInt(resultArray[0]);
+                int team2Goals = Integer.parseInt(resultArray[1]);
 
-                updateDatabase(context, idTeam1, idTeam2, result);
+                updateDatabase(context, idTeam1, idTeam2, team1Goals, team2Goals);
                 sendBroadcast(context);
             }
             catch (Exception e){
@@ -68,9 +72,9 @@ public class SMSReceiver extends BroadcastReceiver {
     }
 
 
-    private void updateDatabase(Context context, int idTeam1, int idTeam2, String result){
+    private void updateDatabase(Context context, int idTeam1, int idTeam2, int team1Goals, int team2Goals){
         SQLiteHelper sqLiteHelper = new SQLiteHelper(context);
-        sqLiteHelper.createMatch(idTeam1, idTeam2, result);
+        sqLiteHelper.createMatch(idTeam1, idTeam2, team1Goals, team2Goals);
     }
 
 

@@ -32,7 +32,7 @@ public class MatchesAdapter extends RecyclerView.Adapter<MatchesAdapter.ViewHold
         Match match = matchesList.get(position);
         holder.textViewTeam1Name.setText(match.team1.name);
         holder.textViewTeam2Name.setText(match.team2.name);
-        holder.textViewResult.setText(match.result);
+        holder.textViewResult.setText(match.team1Goals + " - " + match.team2Goals);
     }
 
     @Override

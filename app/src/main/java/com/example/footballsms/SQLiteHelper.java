@@ -19,7 +19,7 @@ import static android.content.ContentValues.TAG;
 public class SQLiteHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "football.db";
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 3;
 
     private static final String TABLE_TEAMS = "teams";
     private static final String COLUMN_TEAM_ID = "_id";
@@ -34,7 +34,8 @@ public class SQLiteHelper extends SQLiteOpenHelper {
     private static final String COLUMN_MATCH_ID = "_id";
     private static final String COLUMN_MATCH_TEAM1_ID = "team1_id";
     private static final String COLUMN_MATCH_TEAM2_ID = "team2_id";
-    private static final String COLUMN_MATCH_RESULT = "result";
+    private static final String COLUMN_MATCH_TEAM1_GOALS = "team1_goals";
+    private static final String COLUMN_MATCH_TEAM2_GOALS = "team2_goals";
     private static final String COLUMN_MATCH_CREATEDATE = "create_date";
 
     private static final String CREATE_TABLE_TEAMS =
@@ -47,7 +48,8 @@ public class SQLiteHelper extends SQLiteOpenHelper {
             COLUMN_MATCH_ID + " integer primary key autoincrement, " +
             COLUMN_MATCH_TEAM1_ID + " integer references " + TABLE_TEAMS + "(" + COLUMN_TEAM_ID + ")," +
             COLUMN_MATCH_TEAM2_ID + " integer references " + TABLE_TEAMS + "(" + COLUMN_TEAM_ID + ")," +
-            COLUMN_MATCH_RESULT + " text not null," +
+            COLUMN_MATCH_TEAM1_GOALS + " integer default 0," +
+            COLUMN_MATCH_TEAM2_GOALS + " integer default 0," +
             COLUMN_MATCH_CREATEDATE + " datetime default (datetime('now','localtime')));";
 
     public SQLiteHelper(Context context){
@@ -92,23 +94,105 @@ public class SQLiteHelper extends SQLiteOpenHelper {
                 null, null, null);
         Log.d(TAG, "createTeam: " + insertId);
         cursor.moveToFirst();
-        Team newTeam = cursorToTeam(cursor);
+        Team newTeam = new Team(cursor.getInt(0), cursor.getString(1));
         cursor.close();
         db.close();
         return newTeam;
     }
 
-    public void createMatch(int team1_id, int team2_id, String result){
-        Log.d(TAG, "createMatch: " + team1_id + " " + result + " " + team2_id);
+    public void createMatch(int team1_id, int team2_id, int team1Goals, int team2Goals){
+        Log.d(TAG, "createMatch: " + team1_id + " " + team2_id);
 
         ContentValues values = new ContentValues();
         values.put(COLUMN_MATCH_TEAM1_ID, team1_id);
         values.put(COLUMN_MATCH_TEAM2_ID, team2_id);
-        values.put(COLUMN_MATCH_RESULT, result);
+        values.put(COLUMN_MATCH_TEAM1_GOALS, team1Goals);
+        values.put(COLUMN_MATCH_TEAM2_GOALS, team2Goals);
 
         SQLiteDatabase db = getWritableDatabase();
         db.insert(TABLE_MATCHES, null, values);
         db.close();
+    }
+
+    public List<Team> getAllTeams(){
+        List<Team> teams = new ArrayList<>();
+
+        SQLiteDatabase db = getWritableDatabase();
+        Cursor cursor = db.rawQuery("SELECT teams._id, teams.name FROM teams;", null);
+
+        Cursor teamCursor;
+        cursor.moveToFirst();
+        while (!cursor.isAfterLast()) {
+            int id = cursor.getInt(0);
+            String name = cursor.getString(1);
+
+            // goalaverage
+            teamCursor = db.rawQuery(
+                    "SELECT SUM(team1_goals) - SUM(team2_goals) " +
+                            "FROM matches " +
+                            "WHERE team1_id=?;",
+                    new String[] {String.valueOf(id)});
+            teamCursor.moveToFirst();
+            int goalAverage = teamCursor.getInt(0);
+            teamCursor.close();
+            teamCursor = db.rawQuery(
+                    "SELECT SUM(team2_goals) - SUM(team1_goals) " +
+                            "FROM matches " +
+                            "WHERE team2_id=?;",
+                    new String[] {String.valueOf(id)});
+            teamCursor.moveToFirst();
+            goalAverage += teamCursor.getInt(0);
+            teamCursor.close();
+
+            // matches won
+            teamCursor = db.rawQuery(
+                    "SELECT COUNT(*) " +
+                    "FROM matches " +
+                    "WHERE (team1_id=? AND team1_goals > team2_goals) " +
+                    "OR (team2_id=? AND team1_goals < team2_goals);",
+                    new String[] {String.valueOf(id), String.valueOf(id)});
+            teamCursor.moveToFirst();
+            int matchesWon = teamCursor.getInt(0);
+            teamCursor.close();
+
+            // matches lost
+            teamCursor = db.rawQuery(
+                    "SELECT COUNT(*) " +
+                            "FROM matches " +
+                            "WHERE (team1_id=? AND team1_goals < team2_goals) " +
+                            "OR (team2_id=? and team1_goals > team2_goals);",
+                    new String[] {String.valueOf(id), String.valueOf(id)});
+            teamCursor.moveToFirst();
+            int matchesLost = teamCursor.getInt(0);
+            teamCursor.close();
+
+            // matches drawn
+            teamCursor = db.rawQuery(
+                    "SELECT COUNT(*) " +
+                            "FROM matches " +
+                            "WHERE (team1_id=? OR team2_id=?) " +
+                            "AND team1_goals=team2_goals;",
+                    new String[] {String.valueOf(id), String.valueOf(id)});
+            teamCursor.moveToFirst();
+            int matchesDrawn = teamCursor.getInt(0);
+            teamCursor.close();
+
+            Team team = new Team(id, name, matchesWon, matchesLost, matchesDrawn, goalAverage);
+            teams.add(team);
+            cursor.moveToNext();
+        }
+
+        cursor.close();
+        db.close();
+        return teams;
+    }
+
+    public void deleteAllTeams(){
+        SQLiteDatabase db = getWritableDatabase();
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_MATCHES);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_TEAMS);
+        db.execSQL(CREATE_TABLE_TEAMS);
+        db.execSQL(CREATE_TABLE_MATCHES);
     }
 
     public List<Match> getAllMatches(){
@@ -116,7 +200,7 @@ public class SQLiteHelper extends SQLiteOpenHelper {
 
         SQLiteDatabase db = getWritableDatabase();
         Cursor cursor = db.rawQuery("SELECT " + COLUMN_MATCH_TEAM1_ID + ", " +
-                COLUMN_MATCH_TEAM2_ID + ", " + COLUMN_MATCH_RESULT + ", " + COLUMN_MATCH_CREATEDATE +
+                COLUMN_MATCH_TEAM2_ID + ", " + COLUMN_MATCH_TEAM1_GOALS + ", " + COLUMN_MATCH_TEAM2_GOALS + ", " + COLUMN_MATCH_CREATEDATE +
                 ", t1." + COLUMN_TEAM_NAME + ", t2." + COLUMN_TEAM_NAME + ", " + TABLE_MATCHES + "." +
                 COLUMN_MATCH_ID + " FROM " + TABLE_MATCHES + " LEFT JOIN " + TABLE_TEAMS + " AS t1 ON " +
                 COLUMN_MATCH_TEAM1_ID + "=t1._id LEFT JOIN " + TABLE_TEAMS + " AS t2 ON " + COLUMN_MATCH_TEAM2_ID +
@@ -134,17 +218,12 @@ public class SQLiteHelper extends SQLiteOpenHelper {
         return matches;
     }
 
-
-    private static Team cursorToTeam(Cursor cursor){
-        return new Team(cursor.getInt(0), cursor.getString(1));
-    }
-
     private static Match cursorToMatch(Cursor cursor){
         // TODO: indexes and LocalDateTime
-        Team team1 = new Team(cursor.getInt(0), cursor.getString(4));
-        Team team2 = new Team(cursor.getInt(1), cursor.getString(5));
+        Team team1 = new Team(cursor.getInt(0), cursor.getString(5));
+        Team team2 = new Team(cursor.getInt(1), cursor.getString(6));
         // TODO: change this TEMP date
-        return new Match(team1, team2, cursor.getString(2));
+        return new Match(team1, team2, cursor.getInt(2), cursor.getInt(3));
     }
 
 }
