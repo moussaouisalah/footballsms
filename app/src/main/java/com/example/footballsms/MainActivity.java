@@ -15,6 +15,7 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.Button;
 
 import java.util.List;
 
@@ -26,11 +27,19 @@ public class MainActivity extends AppCompatActivity {
 
     RecyclerView recyclerViewMatches;
     MatchesAdapter matchesAdapter;
+    Button buttonRankings;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        buttonRankings = findViewById(R.id.buttonRankings);
+        buttonRankings.setOnClickListener(view -> {
+            Intent intent = new Intent();
+            intent.setClass(getApplicationContext(), RankingsActivity.class);
+            startActivity(intent);
+        });
 
         SQLiteHelper sqLiteHelper = new SQLiteHelper(getApplicationContext());
         List<Team> teams = sqLiteHelper.getAllTeams();

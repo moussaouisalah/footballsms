@@ -38,13 +38,8 @@ public class SMSReceiver extends BroadcastReceiver {
         final SmsMessage[] message = new SmsMessage[mypdu.length];
         Log.d(TAG, "onReceive: " + mypdu.length);
         for(int i = 0; i < mypdu.length; i++){
-            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
-                String format = dataBundle.getString("format");
-                message[i] = SmsMessage.createFromPdu((byte[]) mypdu[i], format);
-            }
-            else {
-                message[i] = SmsMessage.createFromPdu((byte[]) mypdu[i]);
-            }
+            String format = dataBundle.getString("format");
+            message[i] = SmsMessage.createFromPdu((byte[]) mypdu[i], format);
             msg = message[i].getMessageBody();
             phoneNumber = message[i].getOriginatingAddress();
             Log.d(TAG, "onReceive: " + msg + " " + phoneNumber);
