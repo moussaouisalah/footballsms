@@ -1,0 +1,23 @@
+message:
+	<!##!>ID_EQUIPE1<##!>BUTS_EQUIPE1-BUTS_EQUIPE2<##!>ID_EQUIPE2<#!#>
+
+	exemple:
+		<!##!>8<##!>2-3<##!>12<#!#>
+	
+ids:
+	Raja: 1
+	Wydad AC: 2
+	Olympic Safi: 3
+	FAR Rabat: 4
+	IR Tanger: 5
+	Berkane: 6
+	Maghreb Fès: 7
+	CAYB: 8
+	HUSA: 9
+	Chabab Moham.: 10
+	MC Oujda: 11
+	FUS Rabat: 12
+	Tétouan: 13
+	El Jadida: 14
+	Rapide OZ: 15
+	RCA Zemamra: 16

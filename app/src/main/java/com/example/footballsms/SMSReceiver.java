@@ -9,7 +9,7 @@ import android.telephony.SmsMessage;
 import android.util.Log;
 
 public class SMSReceiver extends BroadcastReceiver {
-    private static final String PHONE_NUMBER = "666962941";
+    private static final String[] PHONE_NUMBERS = {"666962941", "643954467", "617017214"};
 
     private static final String SMS_RECEIVED = "android.provider.Telephony.SMS_RECEIVED";
     private static final String TAG = "SMSReceiver";
@@ -45,7 +45,10 @@ public class SMSReceiver extends BroadcastReceiver {
             Log.d(TAG, "onReceive: " + msg + " " + phoneNumber);
         }
 
-        if(phoneNumber.contains(PHONE_NUMBER) && msg.contains(START_SEQUENCE) && msg.contains(END_SEQUENCE)){
+        if(!isFromOurPhones(phoneNumber))
+            return;
+
+        if(msg.contains(START_SEQUENCE) && msg.contains(END_SEQUENCE)){
             try {
                 String content = msg.split(START_SEQUENCE)[1].split(END_SEQUENCE)[0];
                 String[] contentArray = content.split(SEPARATING_SEQUENCE);
@@ -80,5 +83,13 @@ public class SMSReceiver extends BroadcastReceiver {
 
         context.sendBroadcast(broadcastIntent);
         Log.d(TAG, "sendBroadcast: sent broadcast");
+    }
+
+    private boolean isFromOurPhones(String phoneNumber){
+        for(String ourPhone : PHONE_NUMBERS){
+            if(phoneNumber.contains(ourPhone))
+                return true;
+        }
+        return false;
     }
 }
