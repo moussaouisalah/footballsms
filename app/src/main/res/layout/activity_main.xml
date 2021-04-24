@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:backgroundTint="#D81B60"
     tools:context=".MainActivity">
 
     <LinearLayout
@@ -18,6 +19,29 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:text="Classement" />
+
+        <Button
+            android:id="@+id/buttonLoginRedirect"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:background="#43A047"
+            android:text="Login"
+            app:iconTint="#8E24AA" />
+
+        <TextView
+            android:id="@+id/textViewPhoneNumber"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="TextView" />
+
+        <TextView
+            android:id="@+id/textViewIMEI"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="TextView" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerViewMatches"
