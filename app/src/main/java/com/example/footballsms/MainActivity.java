@@ -51,11 +51,8 @@ public class MainActivity extends AppCompatActivity {
         });
 
         buttonLogin = findViewById(R.id.buttonLoginRedirect);
-        buttonLogin.setOnClickListener(view -> {
-            Intent intent = new Intent();
-            intent.setClass(getApplicationContext(), LoginActivity.class);
-            startActivity(intent);
-        });
+        setLoginButton(buttonLogin);
+
 
         SQLiteHelper sqLiteHelper = new SQLiteHelper(getApplicationContext());
         List<Team> teams = sqLiteHelper.getAllTeams();
@@ -82,6 +79,27 @@ public class MainActivity extends AppCompatActivity {
 
         textViewPhoneNumber.setText(sqLiteHelper.getPhone());
         textViewIMEI.setText(getDeviceId(getApplicationContext()));
+    }
+
+    private void setLoginButton(Button buttonLogin) {
+        PreferencesManager preferencesManager = new PreferencesManager(getApplicationContext());
+        if(preferencesManager.isLoggedIn())
+        {
+            buttonLogin.setText("Voir Compte");
+            buttonLogin.setOnClickListener(view -> {
+                Intent intent = new Intent();
+                intent.setClass(getApplicationContext(), AccountActivity.class);
+                startActivity(intent);
+            });
+        }
+        else {
+            buttonLogin.setText("Login");
+            buttonLogin.setOnClickListener(view -> {
+                Intent intent = new Intent();
+                intent.setClass(getApplicationContext(), LoginActivity.class);
+                startActivity(intent);
+            });
+        }
     }
 
     private void assessReadPhonePermissions() {
@@ -275,5 +293,9 @@ public class MainActivity extends AppCompatActivity {
         sqLiteHelper.createMatch(1, 2, 0, 5);
     }
 
-
+    @Override
+    protected void onResume() {
+        super.onResume();
+        setLoginButton(buttonLogin);
+    }
 }

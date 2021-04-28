@@ -28,8 +28,12 @@ public class LoginActivity extends AppCompatActivity {
             SQLiteHelper sqLiteHelper = new SQLiteHelper(getApplicationContext());
 
             String toastText = "";
-            if(sqLiteHelper.loginUser(username, password))
+            if(sqLiteHelper.loginUser(username, password)){
+                PreferencesManager preferencesManager = new PreferencesManager(getApplicationContext());
+                preferencesManager.login(username);
                 toastText = "Login Correct";
+                finish();
+            }
             else
                 toastText = "Login Incorrect";
 
